@@ -26,7 +26,7 @@ print("number of sample", r)
 print("distribution power", f)
 model_name = "models/"
 if BINARY_LOSS_FLAG:
-	model_name += "best_binary_loss_r"+str(r)
+	model_name += "best_binary_loss_r"+str(r) + "_f" + str(f)
 	print("entring binary loss mode")
 else:
 	model_name += "best_log_loss"
