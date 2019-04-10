@@ -24,7 +24,7 @@ print("Binary Loss enabled?", BINARY_LOSS_FLAG)
 print("number of epochs", total_epoch)
 print("number of sample", r)
 print("distribution power", f)
-model_name = "models/"
+model_name = "models/long_"
 if BINARY_LOSS_FLAG:
 	model_name += "best_binary_loss_r"+str(r) + "_f" + str(f)
 	print("entring binary loss mode")
