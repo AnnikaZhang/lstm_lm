@@ -81,7 +81,7 @@ def count_test(file, table):
 	data = open("31210-s19-hw1/" + file)
 	count = 0
 	for sentence in data:
-		words = sentence.strip("\n").split(" ")
+		words = sentence.strip("\n").split()
 		for word in words:
 			if word not in table:
 				count += 1
@@ -91,9 +91,21 @@ def load_sentence(file):
 	data = open("31210-s19-hw1/" + file)
 	res = []
 	for sentence in data:
-		words = sentence.strip("\n").split(" ")
+		words = sentence.strip("\n").split()
 		res.append(words)
 	return res
+
+def load_large_sentence(file):
+	data = open("31210-s19-hw1/" + file)
+	collection =[]
+	target = []
+	for sentence in data:
+		words = sentence.strip("\n").split()
+		start = words[1:].index("<s>") + 1
+		label = words[start + 1:]
+		collection.append(words)
+		target.append(label)
+	return collection, label
 
 def test(data, t, verbose):
 	count = 0
@@ -207,7 +219,7 @@ for n_epoch in range(total_epoch):
 		y = net(x)
 		target = get_target(sentence, t)
 		if BINARY_LOSS_FLAG == True:
-			loss = binary_loss(y, target, 20, vocab_size)
+			loss = binary_loss(y, target, r, vocab_size)
 		else:
 			loss = criterion(y, target)
 		count += len(loss)
