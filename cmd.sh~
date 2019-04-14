@@ -1,0 +1,7 @@
+#!/bin/bash                                                                                                                                                                          
+# My first script                                                                                                                                                                    
+
+echo "Hello World!"
+python3 hw1.py -r 20 -f 0 -epoch 20
+python3 hw1.py -b -r 20 -f 1 -epoch 20
+

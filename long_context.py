@@ -9,21 +9,24 @@ from scipy import stats
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("current device", device)
+log = open("log.txt", "a+")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-b', action="store_true", default = False)
 parser.add_argument('-r', action="store", type = int)
 parser.add_argument('-epoch', action = "store", type = int)
 parser.add_argument('-f', action = "store", type = float)
+parser.add_argument('-dim', action = "store", type = int)
 args = parser.parse_args()
 r = args.r
 f = args.f
+dim = args.dim
 BINARY_LOSS_FLAG  = args.b
 total_epoch = args.epoch
-print("Binary Loss enabled?", BINARY_LOSS_FLAG)
-print("number of epochs", total_epoch)
-print("number of sample", r)
-print("distribution power", f)
+log.write("Binary Loss enabled? %i \n" % BINARY_LOSS_FLAG)
+log.write("number of epochs %i \n" % total_epoch)
+log.write("number of sample %i \n"% r)
+log.write("distribution power %f \n"% f)
 model_name = "models/long_"
 if BINARY_LOSS_FLAG:
 	model_name += "best_binary_loss_r"+str(r) + "_f" + str(f)
@@ -87,7 +90,7 @@ def load_sentence(file):
 		label = words[start + 1:]
 		collection.append(words)
 		target.append(label)
-	return collection, label
+	return collection, target
 
 def test(data, t, verbose):
 	count = 0
@@ -104,7 +107,7 @@ def test(data, t, verbose):
 				print("expected:", " ".join([wl[word] for word in target]))
 				print("get:     ", " ".join([wl[word] for word in result]))
 			out_len = len(target)
-			result = result[-outlen:]
+			result = result[-out_len:]
 			for i in range(len(result)):
 				if result[i] == target[i]:
 					correct += 1
@@ -174,7 +177,7 @@ vocab_size = len(wl)
 ## in_dim is the vocab size since we feed one-hot vector
 ## hidden_dim is 200
 ## out_dim is the vocab size
-net = LSTM_Net(vocab_size, 200, vocab_size).cuda()
+net = LSTM_Net(vocab_size, dim, vocab_size).cuda()
 optimizer = optim.Adam(net.parameters())
 train_data, train_target = load_sentence("bobsue.prevsent.train.tsv")
 dev_data, dev_target = load_sentence("bobsue.prevsent.dev.tsv")
@@ -219,9 +222,11 @@ for n_epoch in range(total_epoch):
 	dev_test(best, dev_data, test_data, t, n_sentence, False)
 	print("best dev with test", best.dev, best.test)
 time_per_sentence /= total_epoch
-print("average process time for a sentence", time_per_sentence)
-print("number of sentences to reach best dev", best.n_sentence)
-print("minites to read best dev", (best.time - start_train_time)/60)
+log.write("best dev is %f, best test is %f \n" % (best.dev, best.test))
+log.write("average process time for a sentence: %f \n" % time_per_sentence)
+log.write("number of sentences to reach best dev: %i \n"% best.n_sentence)
+temp = (best.time - start_train_time)/60
+log.write("minites to read best dev: %f \n" % temp)
 
 
 

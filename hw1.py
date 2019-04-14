@@ -9,7 +9,7 @@ from scipy import stats
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("current device", device)
-
+log = open("log.txt", "a+")
 parser = argparse.ArgumentParser()
 parser.add_argument('-b', action="store_true", default = False)
 parser.add_argument('-r', action="store", type = int)
@@ -20,10 +20,10 @@ r = args.r
 f = args.f
 BINARY_LOSS_FLAG  = args.b
 total_epoch = args.epoch
-print("Binary Loss enabled?", BINARY_LOSS_FLAG)
-print("number of epochs", total_epoch)
-print("number of sample", r)
-print("distribution power", f)
+log.write("Binary Loss enabled? %i \n" % BINARY_LOSS_FLAG)
+log.write("number of epochs %i \n" % total_epoch)
+log.write("number of sample %i \n"% r)
+log.write("distribution power %f \n"% f)
 model_name = "models/"
 if BINARY_LOSS_FLAG:
 	model_name += "best_binary_loss_r"+str(r) + "_f" + str(f)
@@ -168,6 +168,7 @@ def binary_loss(output, target, r, num_label):
 	## create one-hot vector for negative sampling
         if BINARY_LOSS_FLAG:
                 R = unigram_dist.rvs(size = r)
+                #print(R[0:100])
                 sample = torch.LongTensor(R).cuda()
                 sample = sample.unsqueeze(1)
         else:
@@ -234,11 +235,12 @@ for n_epoch in range(total_epoch):
 	dev_test(best, dev_data, test_data, t, n_sentence, False)
 	print("best dev with test", best.dev, best.test)
 time_per_sentence /= total_epoch
-print("average process time for a sentence", time_per_sentence)
-print("number of sentences to reach best dev", best.n_sentence)
-print("minites to read best dev", (best.time - start_train_time)/60)
-
-
+log.write("best dev is %f, best test is %f \n" % (best.dev, best.test))
+log.write("average process time for a sentence: %f \n" % time_per_sentence)
+log.write("number of sentences to reach best dev: %i \n"% best.n_sentence)
+temp = (best.time - start_train_time)/60
+log.write("minites to read best dev: %f \n" % temp)
+log.write("\n \n")
 
 
 	
