@@ -28,8 +28,8 @@ log.write("number of sample %i \n"% r)
 log.write("distribution power %f \n"% f)
 model_name = "models/"
 if HINGE_LOSS_FLAG:
-        model_name += "best_hinge_loss_r"+str(r) + "_f" + str(f)
-        print("Entering hinge loss mode")
+		model_name += "best_hinge_loss_r"+str(r) + "_f" + str(f)
+		print("Entering hinge loss mode")
 elif BINARY_LOSS_FLAG:
 	model_name += "best_binary_loss_r"+str(r) + "_f" + str(f)
 	print("Entring binary loss mode")
@@ -146,17 +146,17 @@ def dev_test(best, dev_data, test_data, t, n_sentence, verbose):
 	return
 
 def unigram(data,f):
-        vector = np.zeros(vocab_size)
-        for sentence in data:
-                for word in sentence[1:]:
-                        index = t[word]
-                        vector[index]+=1
-        vector = vector / np.sum(vector)
-        vector = np.power(vector, f)
-        vector = vector / np.sum(vector)
-        xk = np.arange(vocab_size)
-        distribution= stats.rv_discrete(name = 'custom', values = (xk, vector))
-        return distribution
+		vector = np.zeros(vocab_size)
+		for sentence in data:
+				for word in sentence[1:]:
+						index = t[word]
+						vector[index]+=1
+		vector = vector / np.sum(vector)
+		vector = np.power(vector, f)
+		vector = vector / np.sum(vector)
+		xk = np.arange(vocab_size)
+		distribution= stats.rv_discrete(name = 'custom', values = (xk, vector))
+		return distribution
 
 
 
@@ -171,33 +171,33 @@ def one_hot_batch(sample, num_label):
 def binary_loss(output, target, r, num_label):
 	## output dim: num_words * vocab_size
 	## create one-hot vector for negative sampling
-        if BINARY_LOSS_FLAG:
-                R = unigram_dist.rvs(size = r)
-                #print(R[0:100])
-                sample = torch.LongTensor(R).cuda()
-                sample = sample.unsqueeze(1)
-        else:
-                sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
-        one_hot_sample = one_hot_batch(sample, num_label)
-        neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
-        neg = torch.sum(torch.log(1-neg), dim = 1)
-        ## create one-hot vector for target
-        one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
-        loss = - torch.log(F.sigmoid(torch.sum(torch.mul(output, one_hot_target), dim = 1))) - neg
+		if BINARY_LOSS_FLAG:
+				R = unigram_dist.rvs(size = r)
+				#print(R[0:100])
+				sample = torch.LongTensor(R).cuda()
+				sample = sample.unsqueeze(1)
+		else:
+				sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
+		one_hot_sample = one_hot_batch(sample, num_label)
+		neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
+		neg = torch.sum(torch.log(1-neg), dim = 1)
+		## create one-hot vector for target
+		one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
+		loss = - torch.log(F.sigmoid(torch.sum(torch.mul(output, one_hot_target), dim = 1))) - neg
 	#print(loss.requires_grad)
-        return loss
+		return loss
 
 def hinge_loss(output, target, num_label):
-        R = unigram_dist.rvs(size = r)
-        sample = torch.LongTensor(R).cuda()
-        sample = sample.unsqueeze(1)
-        one_hot_sample = one_hot_batch(sample, num_label)
-        one_hot_sample = one_hot_sample.permute(1,0)
-        neg_score = torch.mm(output, one_hot_sample) 
-        one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
-        target_score = torch.sum(torch.mul(output, one_hot_target), dim = 1).repeat(r,1).permute(1,0)
-        loss = torch.sum(F.relu(1 - target_score + neg_score), dim = 1)
-        return loss
+		R = unigram_dist.rvs(size = r)
+		sample = torch.LongTensor(R).cuda()
+		sample = sample.unsqueeze(1)
+		one_hot_sample = one_hot_batch(sample, num_label)
+		one_hot_sample = one_hot_sample.permute(1,0)
+		neg_score = torch.mm(output, one_hot_sample) 
+		one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
+		target_score = torch.sum(torch.mul(output, one_hot_target), dim = 1).repeat(r,1).permute(1,0)
+		loss = torch.sum(F.relu(1 - target_score + neg_score), dim = 1)
+		return loss
 
 
 #BINARY_LOSS_FLAG = False
@@ -238,7 +238,7 @@ for n_epoch in range(total_epoch):
 			loss = hinge_loss(y, target, r, vocab_size)
 		elif BINARY_LOSS_FLAG:
 			loss = binary_loss(y, target, r, vocab_size)
-        else:
+		else:
 			loss = criterion(y, target)
 		count += len(loss)
 		acc_loss += torch.sum(loss)
