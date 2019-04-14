@@ -11,23 +11,28 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("current device", device)
 log = open("log.txt", "a+")
 parser = argparse.ArgumentParser()
-parser.add_argument('-b', action="store_true", default = False)
-parser.add_argument('-r', action="store", type = int)
+parser.add_argument('-b', action = "store_true", default = False)
+parser.add_argument('-h', action = "store_true", default = False)
+parser.add_argument('-r', action = "store", type = int)
 parser.add_argument('-epoch', action = "store", type = int)
 parser.add_argument('-f', action = "store", type = float)
 args = parser.parse_args()
 r = args.r
 f = args.f
 BINARY_LOSS_FLAG  = args.b
+HINGE_LOSS_FLAG = args.h
 total_epoch = args.epoch
 log.write("Binary Loss enabled? %i \n" % BINARY_LOSS_FLAG)
 log.write("number of epochs %i \n" % total_epoch)
 log.write("number of sample %i \n"% r)
 log.write("distribution power %f \n"% f)
 model_name = "models/"
-if BINARY_LOSS_FLAG:
+if HINGE_LOSS_FLAG:
+        model_name += "best_hinge_loss_r"+str(r) + "_f" + str(f)
+        print("Entering hinge loss mode")
+elif BINARY_LOSS_FLAG:
 	model_name += "best_binary_loss_r"+str(r) + "_f" + str(f)
-	print("entring binary loss mode")
+	print("Entring binary loss mode")
 else:
 	model_name += "best_log_loss"
 
@@ -182,7 +187,17 @@ def binary_loss(output, target, r, num_label):
 	#print(loss.requires_grad)
         return loss
 
-### efficiency measurement
+def hinge_loss(output, target, num_label):
+        R = unigram_dist.rvs(size = r)
+        sample = torch.LongTensor(R).cuda()
+        sample = sample.unsqueeze(1)
+        one_hot_sample = one_hot_batch(sample, num_label)
+        one_hot_sample = one_hot_sample.permute(1,0)
+        neg_score = torch.mm(output, one_hot_sample) 
+        one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
+        target_score = torch.sum(torch.mul(output, one_hot_target), dim = 1).repeat(r,1).permute(1,0)
+        loss = torch.sum(F.relu(1 - target_score + neg_score), dim = 1)
+        return loss
 
 
 #BINARY_LOSS_FLAG = False
@@ -219,10 +234,12 @@ for n_epoch in range(total_epoch):
 		x = sentence_input(sentence, t)
 		y = net(x)
 		target = get_target(sentence, t)
-		if BINARY_LOSS_FLAG == True:
-			loss = binary_loss(y, target, r, vocab_size)
-		else:
-			loss = criterion(y, target)
+                if HINGE_LOSS_FLAG:
+                        loss = hinge_loss(y, target, r, vocab_size)
+                elif BINARY_LOSS_FLAG:
+                        loss = binary_loss(y, target, r, vocab_size)
+                else:
+                        loss = criterion(y, target)
 		count += len(loss)
 		acc_loss += torch.sum(loss)
 		loss.sum().backward()

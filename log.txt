@@ -68,3 +68,65 @@ number of sentences to reach best dev: 58326
 minites to read best dev: 9.416871 
 
  
+Binary Loss enabled? 0 
+number of epochs 10 
+number of sample 20 
+distribution power 0.000000 
+Binary Loss enabled? 0 
+number of epochs 10 
+number of sample 20 
+distribution power 0.000000 
+Binary Loss enabled? 0 
+number of epochs 10 
+number of sample 20 
+distribution power 0.000000 
+best dev is 0.346803, best test is 0.338895 
+average process time for a sentence: 0.010677 
+number of sentences to reach best dev: 14074 
+minites to read best dev: 2.755282 
+Binary Loss enabled? 0 
+number of epochs 10 
+number of sample 20 
+distribution power 0.000000 
+best dev is 0.331532, best test is 0.325971 
+average process time for a sentence: 0.007286 
+number of sentences to reach best dev: 22110 
+minites to read best dev: 2.878441 
+
+ 
+Binary Loss enabled? 0 
+number of epochs 7 
+number of sample 20 
+distribution power 0.000000 
+best dev is 0.342121, best test is 0.337014 
+average process time for a sentence: 0.011413 
+number of sentences to reach best dev: 16074 
+minites to read best dev: 3.288449 
+Binary Loss enabled? 1 
+number of epochs 15 
+number of sample 20 
+distribution power 0.030000 
+Binary Loss enabled? 1 
+number of epochs 15 
+number of sample 20 
+distribution power 0.030000 
+Binary Loss enabled? 1 
+number of epochs 10 
+number of sample 20 
+distribution power 0.030000 
+best dev is 0.307402, best test is 0.295694 
+average process time for a sentence: 0.009039 
+number of sentences to reach best dev: 58326 
+minites to read best dev: 9.296195 
+
+ 
+Binary Loss enabled? 1 
+number of epochs 12 
+number of sample 20 
+distribution power 0.060000 
+best dev is 0.314063, best test is 0.305373 
+average process time for a sentence: 0.009060 
+number of sentences to reach best dev: 48288 
+minites to read best dev: 7.742026 
+
+ 

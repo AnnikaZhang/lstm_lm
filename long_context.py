@@ -29,10 +29,10 @@ log.write("number of sample %i \n"% r)
 log.write("distribution power %f \n"% f)
 model_name = "models/long_"
 if BINARY_LOSS_FLAG:
-	model_name += "best_binary_loss_r"+str(r) + "_f" + str(f)
+	model_name += "long_best_binary_loss_r"+str(r) + "_f" + str(f)
 	print("entring binary loss mode")
 else:
-	model_name += "best_log_loss"
+	model_name += "long_best_log_loss"
 
 class LSTM_Net(nn.Module):
 	def __init__(self, in_dim, hidden_dim, out_dim):
@@ -87,7 +87,7 @@ def load_sentence(file):
 	for sentence in data:
 		words = sentence.strip("\n").split()
 		start = words[1:].index("<s>") + 1
-		label = words[start + 1:]
+		label = words[start:]
 		collection.append(words)
 		target.append(label)
 	return collection, target
