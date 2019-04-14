@@ -235,11 +235,11 @@ for n_epoch in range(total_epoch):
 		y = net(x)
 		target = get_target(sentence, t)
 		if HINGE_LOSS_FLAG:
-        	loss = hinge_loss(y, target, r, vocab_size)
-        elif BINARY_LOSS_FLAG:
-        	loss = binary_loss(y, target, r, vocab_size)
+			loss = hinge_loss(y, target, r, vocab_size)
+		elif BINARY_LOSS_FLAG:
+			loss = binary_loss(y, target, r, vocab_size)
         else:
-        	loss = criterion(y, target)
+			loss = criterion(y, target)
 		count += len(loss)
 		acc_loss += torch.sum(loss)
 		loss.sum().backward()
