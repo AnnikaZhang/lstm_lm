@@ -39,7 +39,7 @@ elif BINARY_LOSS_FLAG:
 else:
 	model_name += "best_log_loss"
 
-class myLinear(Module):
+class myLinear(nn.Module):
 
 # a redefinition of linear function that could only output negative sample.
 	def __init__(self, in_features, out_features, bias=True):
