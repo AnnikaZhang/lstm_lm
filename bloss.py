@@ -54,7 +54,6 @@ class myLinear(nn.Module):
 		nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
 
 	def forward(self, input, sample = None):
-		print(type(sample), type(sample) == torch.Tensor)
 		if type(sample)==torch.Tensor:
 			sample.permute(1,0)
 			shrinked = torch.mm(sample, self.weight)
