@@ -184,6 +184,7 @@ def binary_loss(output, target, r, num_label):
 			sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
 	one_hot_sample = one_hot_batch(sample, num_label)
 	neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
+	print(torch.sum(torch.log(1-neg), dim = 1))
 	neg = torch.sum(torch.log(1-neg), dim = 1)/r
 	print(neg)
 	## create one-hot vector for target
