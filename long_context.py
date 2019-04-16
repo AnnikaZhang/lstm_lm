@@ -90,6 +90,9 @@ def load_sentence(file):
 		label = words[start:]
 		collection.append(words)
 		target.append(label)
+
+	print(collection[0:10])
+	print(target[0:10])
 	return collection, target
 
 def test(data, t, verbose):
