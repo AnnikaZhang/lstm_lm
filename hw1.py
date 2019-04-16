@@ -43,7 +43,7 @@ class LSTM_Net(nn.Module):
 	def __init__(self, in_dim, hidden_dim, out_dim):
 		super(LSTM_Net, self).__init__()
 		self.lstm = nn.LSTM(in_dim, hidden_dim)
-		self.l = myLinear(hidden_dim, out_dim)
+		self.l = nn.Linear(hidden_dim, out_dim)
 	def forward(self, x):
 		lstm_out, _ = self.lstm(x)
 		## only return the prediction of the last 
