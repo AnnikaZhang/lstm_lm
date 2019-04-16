@@ -57,9 +57,9 @@ class myLinear(Module):
 		self.out_features = out_features
 		self.weight = Parameter(torch.Tensor(out_features, in_features))
 		if bias:
-            self.bias = Parameter(torch.Tensor(out_features))
-        else:
-            self.register_parameter('bias', None)
+			self.bias = Parameter(torch.Tensor(out_features))
+		else:
+			self.register_parameter('bias', None)
 		self.reset_parameters()
 
 	def reset_parameters(self):
