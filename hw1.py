@@ -6,7 +6,6 @@ import torch.optim as optim
 import time
 import argparse
 from scipy import stats
-import math
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("current device", device)
@@ -49,34 +48,6 @@ class LSTM_Net(nn.Module):
 		lstm_out, _ = self.lstm(x)
 		## only return the prediction of the last 
 		return self.l(lstm_out.view(x.size()[0], -1))[0:-1]
-
-class myLinear(nn.Module):
-
-	def __init__(self, in_features, out_features, bias = True):
-		super(myLinear, self).__init__()
-		self.in_features = in_features
-		self.out_features = out_features
-		self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
-		if bias:
-			self.bias = nn.Parameter(torch.Tensor(out_features))
-		else:
-			self.register_parameter('bias', None)
-		self.reset_parameters()
-
-	def reset_parameters(self):
-		nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
-		if self.bias is not None:
-			fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
-			bound = 1 / math.sqrt(fan_in)
-			nn.init.uniform_(self.bias, -bound, bound)
-
-	def forward(self, input):
-		return F.linear(input, self.weight, self.bias)
-
-	def extra_repr(self):
-		return 'in_features={}, out_features={}, bias={}'.format(
-			self.in_features, self.out_features, self.bias is not None
-		)
 
 ### define a data structure to store the information of the best dev model
 class best_model():
@@ -220,7 +191,7 @@ def binary_loss(output, target, r, num_label):
 	#print(loss.requires_grad)
 	return loss
 
-def hinge_loss(output, target, num_label):
+def hinge_loss(output, target, r, num_label):
 	R = unigram_dist.rvs(size = r)
 	sample = torch.LongTensor(R).cuda()
 	sample = sample.unsqueeze(1)
