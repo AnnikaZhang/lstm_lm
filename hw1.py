@@ -6,7 +6,6 @@ import torch.optim as optim
 import time
 import argparse
 from scipy import stats
-from .. import init
 import math
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -67,9 +66,9 @@ class myLinear(nn.Module):
 	def reset_parameters(self):
 		init.kaiming_uniform_(self.weight, a=math.sqrt(5))
 		if self.bias is not None:
-			fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
+			fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
 			bound = 1 / math.sqrt(fan_in)
-			init.uniform_(self.bias, -bound, bound)
+			nn.init.uniform_(self.bias, -bound, bound)
 
 	def forward(self, input):
 		return F.linear(input, self.weight, self.bias)
