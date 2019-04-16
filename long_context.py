@@ -91,8 +91,8 @@ def load_sentence(file):
 		collection.append(words)
 		target.append(label)
 
-	print(collection[0:10])
-	print("short", target[0:10])
+	#print(collection[0:10])
+	#print("short", target[0:10])
 	return collection, target
 
 def test(data, t, verbose):
@@ -201,7 +201,7 @@ for n_epoch in range(total_epoch):
 	for (i, sentence) in enumerate(train_data):
 		n_sentence+=1
 		if i % 2000 == 1:
-			dev_test(best, dev_data, test_data, t, n_sentence, False)
+			dev_test(best, dev_data, test_data, t, n_sentence, True)
 		optimizer.zero_grad()
 		net.zero_grad()
 		x = sentence_input(sentence, t)
@@ -222,7 +222,7 @@ for n_epoch in range(total_epoch):
 	print("process time per sentence", temp)
 	time_per_sentence += (end_epoch - start_epoch)/len(train_data)
 	print("log loss", acc_loss/count)
-	dev_test(best, dev_data, test_data, t, n_sentence, False)
+	dev_test(best, dev_data, test_data, t, n_sentence, True)
 	print("best dev with test", best.dev, best.test)
 time_per_sentence /= total_epoch
 log.write("best dev is %f, best test is %f \n" % (best.dev, best.test))
