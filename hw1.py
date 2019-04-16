@@ -9,10 +9,11 @@ from scipy import stats
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("current device", device)
+### parsing the arguments
 log = open("log.txt", "a+")
 parser = argparse.ArgumentParser()
 parser.add_argument('-b', action = "store_true", default = False)
-parser.add_argument('-h', action = "store_true", default = False)
+parser.add_argument('-lf', action = "store_true", default = False)
 parser.add_argument('-r', action = "store", type = int)
 parser.add_argument('-epoch', action = "store", type = int)
 parser.add_argument('-f', action = "store", type = float)
@@ -20,12 +21,13 @@ args = parser.parse_args()
 r = args.r
 f = args.f
 BINARY_LOSS_FLAG  = args.b
-HINGE_LOSS_FLAG = args.h
+HINGE_LOSS_FLAG = args.lf
 total_epoch = args.epoch
 log.write("Binary Loss enabled? %i \n" % BINARY_LOSS_FLAG)
 log.write("number of epochs %i \n" % total_epoch)
 log.write("number of sample %i \n"% r)
 log.write("distribution power %f \n"% f)
+### defining the place to save the model
 model_name = "models/"
 if HINGE_LOSS_FLAG:
 		model_name += "best_hinge_loss_r"+str(r) + "_f" + str(f)
@@ -36,16 +38,46 @@ elif BINARY_LOSS_FLAG:
 else:
 	model_name += "best_log_loss"
 
+### define the LSTM network
 class LSTM_Net(nn.Module):
 	def __init__(self, in_dim, hidden_dim, out_dim):
 		super(LSTM_Net, self).__init__()
 		self.lstm = nn.LSTM(in_dim, hidden_dim)
-		self.l = nn.Linear(hidden_dim, out_dim)
+		self.l = myLinear(hidden_dim, out_dim)
 	def forward(self, x):
 		lstm_out, _ = self.lstm(x)
 		## only return the prediction of the last 
 		return self.l(lstm_out.view(x.size()[0], -1))[0:-1]
 
+class myLinear(Module):
+
+	def __init__(self, in_features, out_features, bias = True):
+		super(Linear, self).__init__()
+		self.in_features = in_features
+		self.out_features = out_features
+		self.weight = Parameter(torch.Tensor(out_features, in_features))
+		if bias:
+            self.bias = Parameter(torch.Tensor(out_features))
+        else:
+            self.register_parameter('bias', None)
+		self.reset_parameters()
+
+	def reset_parameters(self):
+		init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+		if self.bias is not None:
+			fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
+			bound = 1 / math.sqrt(fan_in)
+			init.uniform_(self.bias, -bound, bound)
+
+	def forward(self, input):
+		return F.linear(input, self.weight, self.bias)
+
+	def extra_repr(self):
+		return 'in_features={}, out_features={}, bias={}'.format(
+			self.in_features, self.out_features, self.bias is not None
+		)
+
+### define a data structure to store the information of the best dev model
 class best_model():
 	def __init__(self):
 		self.dev = 0
@@ -146,17 +178,17 @@ def dev_test(best, dev_data, test_data, t, n_sentence, verbose):
 	return
 
 def unigram(data,f):
-		vector = np.zeros(vocab_size)
-		for sentence in data:
-				for word in sentence[1:]:
-						index = t[word]
-						vector[index]+=1
-		vector = vector / np.sum(vector)
-		vector = np.power(vector, f)
-		vector = vector / np.sum(vector)
-		xk = np.arange(vocab_size)
-		distribution= stats.rv_discrete(name = 'custom', values = (xk, vector))
-		return distribution
+	vector = np.zeros(vocab_size)
+	for sentence in data:
+			for word in sentence[1:]:
+					index = t[word]
+					vector[index]+=1
+	vector = vector / np.sum(vector)
+	vector = np.power(vector, f)
+	vector = vector / np.sum(vector)
+	xk = np.arange(vocab_size)
+	distribution= stats.rv_discrete(name = 'custom', values = (xk, vector))
+	return distribution
 
 
 
@@ -171,33 +203,33 @@ def one_hot_batch(sample, num_label):
 def binary_loss(output, target, r, num_label):
 	## output dim: num_words * vocab_size
 	## create one-hot vector for negative sampling
-		if BINARY_LOSS_FLAG:
-				R = unigram_dist.rvs(size = r)
-				#print(R[0:100])
-				sample = torch.LongTensor(R).cuda()
-				sample = sample.unsqueeze(1)
-		else:
-				sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
-		one_hot_sample = one_hot_batch(sample, num_label)
-		neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
-		neg = torch.sum(torch.log(1-neg), dim = 1)
-		## create one-hot vector for target
-		one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
-		loss = - torch.log(F.sigmoid(torch.sum(torch.mul(output, one_hot_target), dim = 1))) - neg
+	if BINARY_LOSS_FLAG:
+			R = unigram_dist.rvs(size = r)
+			#print(R[0:100])
+			sample = torch.LongTensor(R).cuda()
+			sample = sample.unsqueeze(1)
+	else:
+			sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
+	one_hot_sample = one_hot_batch(sample, num_label)
+	neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
+	neg = torch.sum(torch.log(1-neg), dim = 1)
+	## create one-hot vector for target
+	one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
+	loss = - torch.log(F.sigmoid(torch.sum(torch.mul(output, one_hot_target), dim = 1))) - neg
 	#print(loss.requires_grad)
-		return loss
+	return loss
 
 def hinge_loss(output, target, num_label):
-		R = unigram_dist.rvs(size = r)
-		sample = torch.LongTensor(R).cuda()
-		sample = sample.unsqueeze(1)
-		one_hot_sample = one_hot_batch(sample, num_label)
-		one_hot_sample = one_hot_sample.permute(1,0)
-		neg_score = torch.mm(output, one_hot_sample) 
-		one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
-		target_score = torch.sum(torch.mul(output, one_hot_target), dim = 1).repeat(r,1).permute(1,0)
-		loss = torch.sum(F.relu(1 - target_score + neg_score), dim = 1)
-		return loss
+	R = unigram_dist.rvs(size = r)
+	sample = torch.LongTensor(R).cuda()
+	sample = sample.unsqueeze(1)
+	one_hot_sample = one_hot_batch(sample, num_label)
+	one_hot_sample = one_hot_sample.permute(1,0)
+	neg_score = torch.mm(output, one_hot_sample) 
+	one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
+	target_score = torch.sum(torch.mul(output, one_hot_target), dim = 1).repeat(r,1).permute(1,0)
+	loss = torch.sum(F.relu(1 - target_score + neg_score), dim = 1)
+	return loss
 
 
 #BINARY_LOSS_FLAG = False
