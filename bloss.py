@@ -63,7 +63,7 @@ class myLinear(nn.Module):
 		print(type(sample), type(sample) == torch.Tensor)
 		if type(sample)==torch.Tensor:
 			sample.permute(1,0)
-			shrinked = torch.mm(self.weight, sample)
+			shrinked = torch.mm(sample, self.weight)
 			return F.linear(input, shrinked, self.bias)
 		return F.linear(input, self.weight, self.bias)
 
