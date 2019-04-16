@@ -208,6 +208,8 @@ for n_epoch in range(total_epoch):
 		y = net(x)
 		target = get_target(train_target[i], t)
 		out_len = len(target)
+		if i % 2000 = 1:
+			print("length of target", train_target[i], sentence, len(target))
 		y = y[-out_len:]
 		if BINARY_LOSS_FLAG == True:
 			loss = binary_loss(y, target, r, vocab_size)
