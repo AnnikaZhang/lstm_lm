@@ -60,7 +60,8 @@ class myLinear(nn.Module):
 			bound = 1 / math.sqrt(fan_in)
 			nn.init.uniform_(self.bias, -bound, bound)
 	def forward(self, input, sample = None):
-		if sample!=None:
+		print(type(sample))
+		if type(sample)==Torch.Tensor:
 			sample.permute(1,0)
 			shrinked = torch.mm(self.weight, sample)
 			return F.linear(input, shrinked, self.bias)
