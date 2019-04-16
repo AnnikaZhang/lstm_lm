@@ -245,6 +245,8 @@ for n_epoch in range(total_epoch):
 		else:
 			loss = criterion(y, target)
 		count += len(loss)
+		if i%2000 == 1:
+			print(torch.sum(loss))
 		acc_loss += torch.sum(loss)
 		loss.sum().backward()
 		optimizer.step()
