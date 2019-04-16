@@ -276,12 +276,11 @@ for n_epoch in range(total_epoch):
 		optimizer.zero_grad()
 		net.zero_grad()
 		x = sentence_input(sentence, t)
-		y = net(x)
 		target = get_target(sentence, t)
 		if HINGE_LOSS_FLAG:
 			loss = hinge_loss(y, target, r, vocab_size)
 		elif BINARY_LOSS_FLAG:
-			loss = binary_loss(y, target, r, vocab_size)
+			loss = binary_loss(net, x, target, r, vocab_size)
 		else:
 			loss = criterion(y, target)
 		count += len(loss)
