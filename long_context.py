@@ -86,13 +86,13 @@ def load_sentence(file):
 	target = []
 	for sentence in data:
 		words = sentence.strip("\n").split()
-		start = words[1:].index("<s>") + 1
+		start = words[1:].index("<s>") + 2
 		label = words[start:]
 		collection.append(words)
 		target.append(label)
 
 	print(collection[0:10])
-	print(target[0:10])
+	print("short", target[0:10])
 	return collection, target
 
 def test(data, t, verbose):
