@@ -49,7 +49,7 @@ class LSTM_Net(nn.Module):
 		## only return the prediction of the last 
 		return self.l(lstm_out.view(x.size()[0], -1))[0:-1]
 
-class myLinear(Module):
+class myLinear(nn.Module):
 
 	def __init__(self, in_features, out_features, bias = True):
 		super(Linear, self).__init__()
