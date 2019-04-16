@@ -9,7 +9,7 @@ from scipy import stats
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("current device", device)
-log = open("log.txt", "a+")
+log = open("long_log.txt", "a+")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-b', action="store_true", default = False)
