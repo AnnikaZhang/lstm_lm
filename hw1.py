@@ -185,6 +185,7 @@ def binary_loss(output, target, r, num_label):
 	one_hot_sample = one_hot_batch(sample, num_label)
 	neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
 	neg = torch.sum(torch.log(1-neg), dim = 1)/r
+	print(neg)
 	## create one-hot vector for target
 	one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
 	loss = - torch.log(F.sigmoid(torch.sum(torch.mul(output, one_hot_target), dim = 1))) - neg
