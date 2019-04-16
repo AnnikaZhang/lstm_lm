@@ -80,7 +80,7 @@ class LSTM_Net(nn.Module):
 	def forward(self, x):
 		lstm_out, _ = self.lstm(x.val)
 		## only return the prediction of the last 
-		return self.l(lstm_out.view(x.size()[0], -1), sample = x.sample)[0:-1]
+		return self.l(lstm_out.view(x.val.size()[0], -1), sample = x.sample)[0:-1]
 
 ### define a data structure to store the information of the best dev model
 class best_model():
