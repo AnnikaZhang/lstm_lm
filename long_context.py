@@ -76,7 +76,7 @@ def sentence_input(sentence, table):
 	return x.view(len(sentence), 1, -1)
 
 def get_target(sentence, table):
-	ls = [table[w] for w in sentence[1:]]
+	ls = [table[w] for w in sentence]
 	return torch.LongTensor(ls).cuda()
 
 
@@ -91,34 +91,31 @@ def load_sentence(file):
 		collection.append(words)
 		target.append(label)
 
-	#print(collection[0:10])
-	#print("short", target[0:10])
 	return collection, target
 
-def test(data, t, verbose):
+def test(data, data_target, t, verbose):
 	count = 0
 	correct = 0
 	for index, s in enumerate(data):
 		x = sentence_input(s, t)
-		target = get_target(s, t)
+		target = get_target(data_target[index], t)
 		count += len(target)
 		with torch.no_grad():
 			y = net(x)
 			result = torch.argmax(y, dim = 1)
-			
+			out_len = len(target)
+			result = result[-out_len:]
 			if verbose == True and index == 50:
 				print("expected:", " ".join([wl[word] for word in target]))
 				print("get:     ", " ".join([wl[word] for word in result]))
-			out_len = len(target)
-			result = result[-out_len:]
 			for i in range(len(result)):
 				if result[i] == target[i]:
 					correct += 1
 	return correct/count
 
 def dev_test(best, dev_data, test_data, t, n_sentence, verbose):
-	dev_result = test(dev_data, t, verbose)
-	test_result = test(test_data, t, verbose)
+	dev_result = test(dev_data, dev_target, t, verbose)
+	test_result = test(test_data, test_target, t, verbose)
 	if dev_result > best.dev:
 		print("dev result", dev_result)
 		print("test result", test_result)
@@ -130,17 +127,17 @@ def dev_test(best, dev_data, test_data, t, n_sentence, verbose):
 	return
 
 def unigram(data,f):
-        vector = np.zeros(vocab_size)
-        for sentence in data:
-                for word in sentence[1:]:
-                        index = t[word]
-                        vector[index]+=1
-        vector = vector / np.sum(vector)
-        vector = np.power(vector, f)
-        vector = vector / np.sum(vector)
-        xk = np.arange(vocab_size)
-        distribution= stats.rv_discrete(name = 'custom', values = (xk, vector))
-        return distribution
+	vector = np.zeros(vocab_size)
+	for sentence in data:
+			for word in sentence[1:]:
+					index = t[word]
+					vector[index]+=1
+	vector = vector / np.sum(vector)
+	vector = np.power(vector, f)
+	vector = vector / np.sum(vector)
+	xk = np.arange(vocab_size)
+	distribution= stats.rv_discrete(name = 'custom', values = (xk, vector))
+	return distribution
 
 
 
@@ -155,20 +152,20 @@ def one_hot_batch(sample, num_label):
 def binary_loss(output, target, r, num_label):
 	## output dim: num_words * vocab_size
 	## create one-hot vector for negative sampling
-        if BINARY_LOSS_FLAG:
-                R = unigram_dist.rvs(size = r)
-                sample = torch.LongTensor(R).cuda()
-                sample = sample.unsqueeze(1)
-        else:
-                sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
-        one_hot_sample = one_hot_batch(sample, num_label)
-        neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
-        neg = torch.sum(torch.log(1-neg), dim = 1)
-        ## create one-hot vector for target
-        one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
-        loss = - torch.log(F.sigmoid(torch.sum(torch.mul(output, one_hot_target), dim = 1))) - neg
-	#print(loss.requires_grad)
-        return loss
+	if BINARY_LOSS_FLAG:
+			R = unigram_dist.rvs(size = r)
+			sample = torch.LongTensor(R).cuda()
+			sample = sample.unsqueeze(1)
+	else:
+			sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
+	one_hot_sample = one_hot_batch(sample, num_label)
+	neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
+	neg = torch.sum(torch.log(1-neg), dim = 1)
+	## create one-hot vector for target
+	one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
+	loss = - torch.log(F.sigmoid(torch.sum(torch.mul(output, one_hot_target), dim = 1))) - neg
+#print(loss.requires_grad)
+	return loss
 
 ### efficiency measurement
 
@@ -208,8 +205,8 @@ for n_epoch in range(total_epoch):
 		y = net(x)
 		target = get_target(train_target[i], t)
 		out_len = len(target)
-		if i % 2000 == 1:
-			print("length of target", train_target[i], sentence, len(target))
+		#if i % 2000 == 1:
+		#	print("length of target", train_target[i], sentence, len(target))
 		y = y[-out_len:]
 		if BINARY_LOSS_FLAG == True:
 			loss = binary_loss(y, target, r, vocab_size)
