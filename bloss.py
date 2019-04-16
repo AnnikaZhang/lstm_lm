@@ -78,9 +78,9 @@ class LSTM_Net(nn.Module):
 		self.lstm = nn.LSTM(in_dim, hidden_dim)
 		self.l = myLinear(hidden_dim, out_dim)
 	def forward(self, x):
-		lstm_out, _ = self.lstm(x)
+		lstm_out, _ = self.lstm(x.val)
 		## only return the prediction of the last 
-		return self.l(lstm_out.view(x.size()[0], -1))[0:-1]
+		return self.l(lstm_out.view(x.size()[0], -1), sample = x.sample)[0:-1]
 
 ### define a data structure to store the information of the best dev model
 class best_model():
@@ -89,6 +89,11 @@ class best_model():
 		self.test = 0
 		self.n_sentence = 0
 		self.time = 0
+
+class module_input():
+	def __init__(self, val, sample):
+		self.val = val
+		self.sample = sample
 
 
 def load_vocab():
@@ -157,7 +162,8 @@ def test(data, t, verbose):
 		target = get_target(s, t)
 		count += len(target)
 		with torch.no_grad():
-			y = net(x)
+			m_input = module_input(x, None)
+			y = net(m_input)
 			result = torch.argmax(y, dim = 1)
 			
 			if verbose == True and index == 50:
@@ -217,8 +223,11 @@ def binary_loss(net, x, target, r, num_label):
 			sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
 	one_hot_sample = one_hot_batch(sample, num_label)
 	one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
-	out = net(x, sample = one_hot_sample)
-	target_score = net(x, sample = one_hot_target)
+	m_input = module_input(x, one_hot_sample)
+	out = net(m_input)
+	##calculate for the target score
+	target_input = module_input(x, one_hot_target)
+	target_score = net(target_input)
 	neg = torch.sum(torch.log(1- F.sigmoid(out)), dim = 1) * (1/r)
 	loss = - torch.log(F.sigmoid(target_score)) - neg
 	'''
