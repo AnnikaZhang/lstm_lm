@@ -184,7 +184,7 @@ def binary_loss(output, target, r, num_label):
 			sample = torch.LongTensor(r,1).random_(1, num_label).cuda()
 	one_hot_sample = one_hot_batch(sample, num_label)
 	neg = F.sigmoid(torch.mul(output, torch.sum(one_hot_sample, dim = 0)))
-	neg = torch.sum(torch.log(1-neg), dim = 1) * (1/r)
+	neg = torch.sum(torch.log(1-neg), dim = 1)/r
 	## create one-hot vector for target
 	one_hot_target = one_hot_batch(target.unsqueeze(1), num_label)
 	loss = - torch.log(F.sigmoid(torch.sum(torch.mul(output, one_hot_target), dim = 1))) - neg
@@ -232,6 +232,7 @@ for n_epoch in range(total_epoch):
 	for (i, sentence) in enumerate(train_data):
 		n_sentence+=1
 		if i % 2000 == 1:
+			print("current r", r)
 			dev_test(best, dev_data, test_data, t, n_sentence, False)
 		optimizer.zero_grad()
 		net.zero_grad()
